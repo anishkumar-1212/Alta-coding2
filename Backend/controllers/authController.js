@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 // =========================
 // GOOGLE OAUTH CLIENT
 // =========================
-console.log(process.env.GOOGLE_CLIENT_ID);
 const googleClient = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
@@ -86,6 +85,14 @@ const loginUser = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
+      });
+    }
+
+    // Google-created account has no password
+    if (!user.password) {
+      return res.status(401).json({
+        success: false,
+        message: "This account uses Google login. Please continue with Google.",
       });
     }
 
@@ -235,9 +242,17 @@ const googleCallback = async (req, res) => {
         expiresIn: "7d",
       },
     );
+    console.log("JWT CREATED:", !!token);
+    console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
 
-    // Redirect to React
-    res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+    const redirectUrl = `${process.env.FRONTEND_URL}/auth/success?token=${token}`;
+
+    console.log("REDIRECTING TO:", redirectUrl);
+
+    res.redirect(redirectUrl);
+
+    // // Redirect to React
+    // res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
   } catch (error) {
     console.error("Google authentication error:", error.message);
 
