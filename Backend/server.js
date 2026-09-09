@@ -1,6 +1,8 @@
 const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
+const cors = require("cors"); //This module safely allow or restrict web browsers from accessing resource on diff domains
+const dotenv = require("dotenv"); // safely loads the .env credintials
+const facultyRoutes = require("./routes/facultyRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 dotenv.config();
 
 const connectDB = require("./config/db");
@@ -11,6 +13,8 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use("/api/faculty", facultyRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Database
 connectDB();

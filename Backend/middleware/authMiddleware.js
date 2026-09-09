@@ -22,7 +22,7 @@ const protect = (req, res, next) => {
       process.env.JWT_SECRET
     );
 
-    // Store user information in request
+    // Store user information in request.
     req.user = decoded;
 
     // Continue to the route

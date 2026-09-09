@@ -2,6 +2,8 @@ const { google } = require("googleapis");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Organization = require("../models/Organization");
+const OrganizationMember = require("../models/OrganizationMember");
 
 // =========================
 // GOOGLE OAUTH CLIENT
@@ -42,6 +44,25 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+    });
+
+    // Find ALTA organization
+    const organization = await Organization.findOne({
+      slug: "alta",
+    });
+
+    if (!organization) {
+      return res.status(500).json({
+        success: false,
+        message: "ALTA organization not found",
+      });
+    }
+
+    // Add user to ALTA as student
+    await OrganizationMember.create({
+      user: user._id,
+      organization: organization._id,
+      role: "student",
     });
 
     res.status(201).json({
@@ -228,6 +249,22 @@ const googleCallback = async (req, res) => {
         user.profileImage = picture || user.profileImage;
 
         await user.save();
+      }
+    }
+    const organization = await Organization.findOne({ slug: "alta" });
+
+    if (organization) {
+      const existingMembership = await OrganizationMember.findOne({
+        user: user._id,
+        organization: organization._id,
+      });
+
+      if (!existingMembership) {
+        await OrganizationMember.create({
+          user: user._id,
+          organization: organization._id,
+          role: "student",
+        });
       }
     }
 
