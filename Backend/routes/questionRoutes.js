@@ -20,29 +20,14 @@ router.get("/", protect, getQuestions);
 router.get("/:id", protect, getQuestionById);
 
 // Faculty and admin can create questions
-router.post(
-  "/",
-  protect,
-  allowRoles("faculty", "admin"),
-  createQuestion
-);
+router.post("/", protect, allowRoles("faculty", "admin"), createQuestion);
 
 // Faculty and admin can update questions
 // The controller checks ownership or admin access
-router.put(
-  "/:id",
-  protect,
-  allowRoles("faculty", "admin"),
-  updateQuestion
-);
+router.put("/:id", protect, allowRoles("faculty", "admin"), updateQuestion);
 
 // Faculty and admin can delete questions
 // The controller checks ownership or admin access
-router.delete(
-  "/:id",
-  protect,
-  allowRoles("faculty", "admin"),
-  deleteQuestion
-);
+router.delete("/:id", protect, allowRoles("faculty", "admin"), deleteQuestion);
 
 module.exports = router;
