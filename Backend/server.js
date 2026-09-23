@@ -12,16 +12,20 @@ const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const testCaseRoutes = require("./routes/testCaseRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
+const executionRoutes = require("./routes/executionRoutes");
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
 
 // Faculty and admin routes
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/questions", questionRoutes);
+app.use("/api/execution", executionRoutes); // ← add this anywhere after the two lines above
 
 // Database
 if (require.main === module) {

@@ -1,49 +1,40 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import "./CodingPlatform.css";
 
 const API_URL = "http://localhost:5001/api";
 
-const defaultCode = {
-  python: `# Write your Python solution here
-`,
-  javascript: `// Write your JavaScript solution here
-`,
-  java: `// Write your Java solution here
-`,
-  cpp: `// Write your C++ solution here
-`,
-};
-
 const CodingPlatform = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const questionId = "6aa6422c15ef666b30e23bee";
 
-  const selectedQuestion = location.state?.question;
-  const selectedQuestionId =
-    location.state?.questionId || selectedQuestion?._id;
-
-  const [question, setQuestion] = useState(selectedQuestion || null);
+  const [question, setQuestion] = useState(null);
   const [language, setLanguage] = useState("python");
-  const [code, setCode] = useState(defaultCode.python);
-  const [submissions, setSubmissions] = useState([]);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(!selectedQuestion);
+  const [code, setCode] = useState(
+`nums = list(map(int, input().split()))
+target = int(input())
+
+for i in range(len(nums)):
+    for j in range(i + 1, len(nums)):
+        if nums[i] + nums[j] == target:
+            print(i, j)
+            break`
+  );
+
   const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
 
-  const fetchQuestion = async () => {
-    if (!selectedQuestionId) {
-      setError("No question selected. Please open a question from Question Bank.");
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    fetchQuestion();
+    fetchSubmissions();
+  }, []);
 
+  const fetchQuestion = async () => {
     try {
       const response = await fetch(
-        `${API_URL}/questions/${selectedQuestionId}`,
+        `${API_URL}/questions/${questionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -54,23 +45,20 @@ const CodingPlatform = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to load question");
+        setError(data.message || "Failed to load question");
+        return;
       }
 
       setQuestion(data.question || data);
     } catch (err) {
-      setError(err.message || "Failed to load question");
-    } finally {
-      setLoading(false);
+      setError("Unable to connect to the backend");
     }
   };
 
   const fetchSubmissions = async () => {
-    if (!selectedQuestionId) return;
-
     try {
       const response = await fetch(
-        `${API_URL}/submissions/question/${selectedQuestionId}`,
+        `${API_URL}/submissions/question/${questionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -81,54 +69,26 @@ const CodingPlatform = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSubmissions(
-          Array.isArray(data) ? data : data.submissions || []
-        );
+        setSubmissions(data);
       }
     } catch (err) {
-      console.error("Failed to load submissions:", err);
+      console.error("Failed to fetch submissions:", err);
     }
-  };
-
-  useEffect(() => {
-    const loadData = async () => {
-      await fetchQuestion();
-      await fetchSubmissions();
-    };
-
-    loadData();
-  }, [selectedQuestionId]);
-
-  const handleLanguageChange = (event) => {
-    const selectedLanguage = event.target.value;
-
-    setLanguage(selectedLanguage);
-    setCode(
-      question?.starterCode?.[selectedLanguage] ||
-        defaultCode[selectedLanguage] ||
-        ""
-    );
-    setResult(null);
   };
 
   const handleSubmit = async () => {
-    if (!selectedQuestionId) {
-      setError("No question selected.");
-      return;
-    }
-
     if (!code.trim()) {
-      setError("Please enter your code before submitting.");
+      setError("Please write some code before submitting.");
       return;
     }
 
     setSubmitting(true);
-    setError("");
     setResult(null);
+    setError("");
 
     try {
       const response = await fetch(
-        `${API_URL}/submissions/question/${selectedQuestionId}`,
+        `${API_URL}/submissions/question/${questionId}`,
         {
           method: "POST",
           headers: {
@@ -145,70 +105,28 @@ const CodingPlatform = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Submission failed");
+        setError(data.message || "Submission failed");
+        return;
       }
 
-      setResult(data.submission || data);
-      await fetchSubmissions();
+      setResult(data.submission);
+      fetchSubmissions();
     } catch (err) {
-      setError(err.message || "Submission failed");
+      setError("Unable to submit code. Check whether the backend is running.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const renderValue = (value) => {
-    if (Array.isArray(value)) {
-      return value.join("\n");
-    }
-
-    if (typeof value === "object" && value !== null) {
-      return JSON.stringify(value, null, 2);
-    }
-
-    return value || "Not provided";
-  };
-
-  if (loading) {
-    return (
-      <div className="coding-loading">
-        Loading coding problem...
-      </div>
-    );
-  }
-
-  if (!question) {
-    return (
-      <div className="coding-page">
-        <div className="coding-error">
-          {error || "Question could not be loaded."}
-        </div>
-
-        <button
-          className="submit-code-button"
-          onClick={() => navigate("/student/questions")}
-        >
-          Back to Question Bank
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="coding-page">
       <div className="coding-header">
         <div>
-          <p className="coding-label">CODING PLATFORM</p>
-
-          <h1>{question.title || "Untitled Question"}</h1>
-
-          <p>
-            Practice coding, submit solutions, and view your results.
+          <p className="page-label">CODING PLATFORM</p>
+          <h1>{question?.title || "Two Sum"}</h1>
+          <p className="page-description">
+            Solve the problem, submit your code, and view your results.
           </p>
-        </div>
-
-        <div className="question-badge">
-          Question ID: {String(selectedQuestionId).slice(-6)}
         </div>
       </div>
 
@@ -219,61 +137,46 @@ const CodingPlatform = () => {
           <h2>Problem Statement</h2>
 
           <p>
-            {question.description || "No problem description available."}
+            Given an array of integers and a target integer, return the
+            indices of two numbers such that they add up to the target.
           </p>
 
-          {question.inputFormat && (
-            <>
-              <h3>Input Format</h3>
-              <p>{renderValue(question.inputFormat)}</p>
-            </>
-          )}
+          <h3>Input Format</h3>
+          <p>
+            The first line contains the array elements separated by spaces.
+            The second line contains the target value.
+          </p>
 
-          {question.outputFormat && (
-            <>
-              <h3>Output Format</h3>
-              <p>{renderValue(question.outputFormat)}</p>
-            </>
-          )}
+          <h3>Output Format</h3>
+          <p>
+            Print the indices of the two numbers whose sum equals the target.
+          </p>
 
-          {question.samples && (
-            <>
-              <h3>Examples</h3>
-              <pre>{renderValue(question.samples)}</pre>
-            </>
-          )}
+          <h3>Example</h3>
 
-          {question.constraints && (
-            <>
-              <h3>Constraints</h3>
+          <pre>
+{`Input:
+2 7 11 15
+9
 
-              {Array.isArray(question.constraints) ? (
-                <ul>
-                  {question.constraints.map((constraint, index) => (
-                    <li key={index}>{constraint}</li>
-                  ))}
-                </ul>
-              ) : (
-                <pre>{renderValue(question.constraints)}</pre>
-              )}
-            </>
-          )}
+Output:
+0 1`}
+          </pre>
 
-          {question.explanation && (
-            <>
-              <h3>Explanation</h3>
-              <p>{question.explanation}</p>
-            </>
-          )}
+          <h3>Test Cases</h3>
+          <p>
+            The code will be checked against sample and hidden test cases.
+          </p>
         </section>
 
         <section className="editor-card">
           <div className="editor-toolbar">
-            <h2>Code Editor</h2>
+            <label htmlFor="language">Language:</label>
 
             <select
+              id="language"
               value={language}
-              onChange={handleLanguageChange}
+              onChange={(event) => setLanguage(event.target.value)}
             >
               <option value="python">Python</option>
               <option value="javascript">JavaScript</option>
@@ -286,7 +189,6 @@ const CodingPlatform = () => {
             className="code-editor"
             value={code}
             onChange={(event) => setCode(event.target.value)}
-            placeholder="Write your code here..."
             spellCheck="false"
           />
 
@@ -295,43 +197,41 @@ const CodingPlatform = () => {
             onClick={handleSubmit}
             disabled={submitting}
           >
-            {submitting ? "Submitting..." : "Submit Code"}
+            {submitting ? "Running..." : "Submit Code"}
           </button>
 
           {result && (
-            <div className={`submission-result ${result.status || ""}`}>
-              <h3>Submission Result</h3>
+            <div className={`result-card ${result.status}`}>
+              <h2>{result.result}</h2>
 
-              <p>
-                <strong>Status:</strong>{" "}
-                {result.result || result.status || "Unknown"}
-              </p>
+              <div className="result-grid">
+                <div>
+                  <span>Status</span>
+                  <strong>{result.status}</strong>
+                </div>
 
-              <p>
-                <strong>Passed Test Cases:</strong>{" "}
-                {result.passedTestCases ?? 0} /{" "}
-                {result.totalTestCases ?? 0}
-              </p>
+                <div>
+                  <span>Passed Tests</span>
+                  <strong>
+                    {result.passedTestCases}/{result.totalTestCases}
+                  </strong>
+                </div>
 
-              {result.executionTime !== undefined && (
-                <p>
-                  <strong>Execution Time:</strong>{" "}
-                  {result.executionTime} ms
-                </p>
-              )}
+                <div>
+                  <span>Execution Time</span>
+                  <strong>{result.executionTime} ms</strong>
+                </div>
 
-              {result.memoryUsed !== undefined && (
-                <p>
-                  <strong>Memory Used:</strong>{" "}
-                  {result.memoryUsed}
-                </p>
-              )}
+                <div>
+                  <span>Memory Used</span>
+                  <strong>{result.memoryUsed} KB</strong>
+                </div>
+              </div>
 
               {result.errorMessage && (
-                <p>
-                  <strong>Error:</strong>{" "}
+                <pre className="error-output">
                   {result.errorMessage}
-                </p>
+                </pre>
               )}
             </div>
           )}
@@ -342,36 +242,36 @@ const CodingPlatform = () => {
         <h2>Submission History</h2>
 
         {submissions.length === 0 ? (
-          <p>No submissions yet.</p>
+          <p>No submissions found.</p>
         ) : (
           <div className="history-table-wrapper">
-            <table>
+            <table className="history-table">
               <thead>
                 <tr>
-                  <th>Language</th>
-                  <th>Status</th>
                   <th>Result</th>
+                  <th>Status</th>
                   <th>Passed</th>
-                  <th>Submitted At</th>
+                  <th>Language</th>
+                  <th>Execution Time</th>
+                  <th>Date</th>
                 </tr>
               </thead>
 
               <tbody>
                 {submissions.map((submission) => (
                   <tr key={submission._id}>
-                    <td>{submission.language}</td>
+                    <td>{submission.result || "Pending"}</td>
                     <td>{submission.status}</td>
-                    <td>{submission.result || "-"}</td>
                     <td>
-                      {submission.passedTestCases ?? 0} /{" "}
-                      {submission.totalTestCases ?? 0}
+                      {submission.passedTestCases}/
+                      {submission.totalTestCases}
                     </td>
+                    <td>{submission.language}</td>
+                    <td>{submission.executionTime} ms</td>
                     <td>
-                      {submission.createdAt
-                        ? new Date(
-                            submission.createdAt
-                          ).toLocaleString()
-                        : "-"}
+                      {new Date(
+                        submission.createdAt
+                      ).toLocaleString()}
                     </td>
                   </tr>
                 ))}
