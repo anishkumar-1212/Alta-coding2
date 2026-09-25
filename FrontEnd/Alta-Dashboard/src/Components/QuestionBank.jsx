@@ -29,11 +29,15 @@ const QuestionBank = () => {
           throw new Error(data.message || "Failed to fetch questions");
         }
 
-        const questionList =
-          data.questions ||
-          data.data ||
-          data.results ||
-          (Array.isArray(data) ? data : []);
+        const questionList = Array.isArray(data.questions)
+          ? data.questions
+          : Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data.results)
+          ? data.results
+          : Array.isArray(data)
+          ? data
+          : [];
 
         setQuestions(questionList);
       } catch (err) {
@@ -121,7 +125,7 @@ const QuestionBank = () => {
                 {question.description || "No description available."}
               </p>
 
-              {question.topics && question.topics.length > 0 && (
+              {Array.isArray(question.topics) && question.topics.length > 0 && (
                 <div style={styles.topics}>
                   {question.topics.map((topic, index) => (
                     <span key={index} style={styles.topic}>

@@ -45,7 +45,13 @@ const FacultyDashboard = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setQuestions(data.questions || data);
+        setQuestions(
+          Array.isArray(data.questions)
+            ? data.questions
+            : Array.isArray(data)
+            ? data
+            : []
+        );
       } else {
         setMessage(data.message || "Failed to load questions");
       }
