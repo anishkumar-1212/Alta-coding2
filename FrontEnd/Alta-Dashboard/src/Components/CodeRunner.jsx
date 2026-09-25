@@ -34,9 +34,9 @@ int main() {
 };
 
 function CodeRunner({ question }) {
-  const [language, setLanguage] = useState("javascript");
-  const [code, setCode] = useState(defaultCode.javascript);
-  const [input, setInput] = useState("");
+  const [language, setLanguage] = useState("python");
+  const [code, setCode] = useState(defaultCode.python);
+  const [input, setInput] = useState(question?.sampleInput || "");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");

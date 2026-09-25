@@ -47,7 +47,6 @@ const AppRoutes = () => {
           }
         />
 
-
         {/* Student question bank */}
         <Route
           path="/student/questions"
@@ -70,7 +69,7 @@ const AppRoutes = () => {
 
         {/* Student coding platform */}
         <Route
-          path="/student/coding"
+          path="/student/coding/:questionId"
           element={
             <RoleRoute allowedRole="student">
               <CodingPlatform />
@@ -97,7 +96,7 @@ const AppRoutes = () => {
             </RoleRoute>
           }
         />
-        
+
         {/* Faculty edit question */}
         <Route
           path="/faculty/questions/:questionId/edit"
@@ -109,14 +108,14 @@ const AppRoutes = () => {
         />
 
         {/* Faculty test case management */}
-<Route
-  path="/faculty/questions/:questionId/test-cases"
-  element={
-    <RoleRoute allowedRole="faculty">
-      <ManageTestCases />
-    </RoleRoute>
-  }
-/>
+        <Route
+          path="/faculty/questions/:questionId/test-cases"
+          element={
+            <RoleRoute allowedRole="faculty">
+              <ManageTestCases />
+            </RoleRoute>
+          }
+        />
         {/* Admin dashboard */}
         <Route
           path="/admin"
