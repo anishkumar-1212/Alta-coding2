@@ -1,11 +1,12 @@
+import CodeRunner from "../Components/CodeRunner";
 import { Routes, Route } from "react-router-dom";
-
 import Home from "../Components/Home";
 import Login from "../Components/Login";
 import Register from "../Components/Register";
 import AuthSuccess from "../Components/AuthSuccess";
 import Account from "../Components/Account";
 import ManageTestCases from "../Components/ManageTestCases";
+import QuestionPage from "../Pages/QuestionPage";
 import StudentDashboard from "../Components/StudentDashboard";
 import CodingPlatform from "../Components/CodingPlatform";
 import QuestionBank from "../Components/QuestionBank";
@@ -29,6 +30,10 @@ const AppRoutes = () => {
       <Route path="/register" element={<Register />} />
 
       <Route path="/auth/success" element={<AuthSuccess />} />
+
+      <Route path="/code-runner" element={<CodeRunner />} />
+
+      <Route path="/question/:id" element={<QuestionPage />} />
 
       {/* Dashboard routes */}
       <Route element={<DashboardLayout />}>

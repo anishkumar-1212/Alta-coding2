@@ -1,63 +1,62 @@
-const PISTON_API_URL =
-  process.env.PISTON_API_URL || "https://emkc.org/api/v2/piston";
+const JUDGE0_API_URL = process.env.JUDGE0_API_URL;
+const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
+const JUDGE0_API_HOST = process.env.JUDGE0_API_HOST;
 
-// language name -> Piston language identifier
+// language name -> Judge0 language_id
 const languageMap = {
-  javascript: "javascript",
-  python: "python",
-  java: "java",
-  cpp: "cpp",
-  c: "c",
+  javascript: 63,
+  python: 71,
+  java: 62,
+  cpp: 54,
+  c: 50,
 };
 
 const isLanguageSupported = (language) =>
   Object.prototype.hasOwnProperty.call(languageMap, language);
 
+const decode = (value) =>
+  value ? Buffer.from(value, "base64").toString("utf-8") : "";
+
 const executeCode = async ({ language, code, input = "" }) => {
-  const pistonLanguage = languageMap[language];
+  const languageId = languageMap[language];
 
   const payload = {
-    language: pistonLanguage,
-    version: "*", // "*" = latest available version Piston has for this language
-    files: [{ content: code }],
-    stdin: input,
+    language_id: languageId,
+    source_code: Buffer.from(code).toString("base64"),
+    stdin: Buffer.from(input).toString("base64"),
   };
 
-  const response = await fetch(`${PISTON_API_URL}/execute`, {
+  const url = `${JUDGE0_API_URL}/submissions?base64_encoded=true&wait=true&fields=*`;
+
+  const response = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "X-RapidAPI-Key": JUDGE0_API_KEY,
+      "X-RapidAPI-Host": JUDGE0_API_HOST,
+    },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const body = await response.text();
     const error = new Error(
-      `Piston request failed: ${response.status} ${body}`,
+      `Judge0 request failed: ${response.status} ${body}`,
     );
-    error.code = "PISTON_REQUEST_FAILED";
+    error.code = "JUDGE0_REQUEST_FAILED";
     throw error;
   }
 
   const result = await response.json();
-  const { compile, run } = result;
-
-  let statusDescription = "Accepted";
-  if (compile && compile.code !== 0) {
-    statusDescription = "Compile Error";
-  } else if (run.signal === "SIGKILL" || run.signal === "SIGTERM") {
-    statusDescription = "Time Limit Exceeded";
-  } else if (run.code !== 0) {
-    statusDescription = "Runtime Error";
-  }
 
   return {
-    statusId: null, // Piston has no numeric status code like Judge0 — statusDescription is the source of truth here
-    statusDescription,
-    stdout: run.stdout || "",
-    stderr: run.stderr || "",
-    compileOutput: compile ? compile.stderr || compile.output || "" : "",
-    time: null,
-    memory: null,
+    statusId: result.status?.id,
+    statusDescription: result.status?.description,
+    stdout: decode(result.stdout),
+    stderr: decode(result.stderr),
+    compileOutput: decode(result.compile_output),
+    time: result.time,
+    memory: result.memory,
   };
 };
 
