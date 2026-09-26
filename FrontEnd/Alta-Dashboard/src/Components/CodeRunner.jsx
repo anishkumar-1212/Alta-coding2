@@ -33,10 +33,10 @@ int main() {
 }`,
 };
 
-function CodeRunner({ question }) {
-  const [language, setLanguage] = useState("javascript");
-  const [code, setCode] = useState(defaultCode.javascript);
-  const [input, setInput] = useState("");
+function CodeRunner({ question, onSubmit }) {
+  const [language, setLanguage] = useState("python");
+  const [code, setCode] = useState(defaultCode.python);
+  const [input, setInput] = useState(question?.sampleInput || "");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
@@ -128,9 +128,17 @@ function CodeRunner({ question }) {
           ))}
         </select>
 
-        <button onClick={handleRun} disabled={loading}>
-          {loading ? "Running..." : "Run"}
-        </button>
+        <div>
+          <button onClick={handleRun} disabled={loading} style={{ marginRight: '10px' }}>
+            {loading ? "Running..." : "Run"}
+          </button>
+          
+          {onSubmit && (
+            <button className="submit-code-button" onClick={() => onSubmit({ code, language })} disabled={loading}>
+              Submit Code
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="editor-container">
