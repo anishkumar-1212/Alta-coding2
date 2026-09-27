@@ -56,17 +56,7 @@ const CodingPlatform = () => {
     );
   }
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch question");
-      }
 
-      setQuestion(data.question || data);
-    } catch (err) {
-      setError(err.message || "Unable to connect to the backend");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchSubmissions = async () => {
     try {
