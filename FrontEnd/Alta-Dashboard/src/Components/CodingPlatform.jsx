@@ -11,6 +11,9 @@ const CodingPlatform = () => {
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [submissions, setSubmissions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     const fetchQuestion = async () => {
@@ -216,6 +219,39 @@ const CodingPlatform = () => {
         {/* Monaco + Judge0 */}
         <section className="editor-card">
           <CodeRunner question={question} onSubmit={handleCodeSubmit} />
+        </section>
+
+        {/* Submissions History */}
+        <section className="history-card">
+          <h2>Submission History</h2>
+          
+          {submitting && (
+            <div className="submission-status">
+              <p>Submitting code... Status: {result?.status || 'Processing'}</p>
+            </div>
+          )}
+
+          {result && !submitting && (
+            <div className={`submission-result ${result.status === 'Accepted' ? 'success' : 'error'}`}>
+              <h3>Last Run Result: {result.status}</h3>
+              <p>{result.result}</p>
+            </div>
+          )}
+
+          <div className="submissions-list">
+            {submissions.map((sub, index) => (
+              <div key={sub._id || index} className="submission-item">
+                <span className="sub-lang">{sub.language}</span>
+                <span className={`sub-status ${sub.status === 'Accepted' ? 'success' : 'error'}`}>
+                  {sub.status}
+                </span>
+                <span className="sub-time">{new Date(sub.createdAt).toLocaleString()}</span>
+              </div>
+            ))}
+            {submissions.length === 0 && !submitting && !result && (
+              <p>No submissions yet.</p>
+            )}
+          </div>
         </section>
       </div>
     </div>
