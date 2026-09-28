@@ -11,6 +11,9 @@ const CodingPlatform = () => {
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [submissions, setSubmissions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     const fetchQuestion = async () => {
@@ -55,6 +58,93 @@ const CodingPlatform = () => {
       </div>
     );
   }
+
+
+
+  const fetchSubmissions = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_URL}/api/submissions/question/${questionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmissions(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch submissions:", err);
+    }
+  };
+
+  const handleCodeSubmit = async ({ code, language }) => {
+    if (!code.trim()) {
+      setError("Please write some code before submitting.");
+      return;
+    }
+
+    setSubmitting(true);
+    setResult({ status: "Queued", result: "Waiting for execution..." });
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_URL}/api/submissions/question/${questionId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "x-idempotency-key": window.crypto.randomUUID()
+          },
+          body: JSON.stringify({
+            language,
+            code,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Submission failed");
+        setSubmitting(false);
+        return;
+      }
+
+      setResult(data.submission);
+      
+      const pollInterval = setInterval(async () => {
+        try {
+          const pollRes = await fetch(`${API_URL}/api/submissions/${data.submission._id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const pollData = await pollRes.json();
+          if (pollRes.ok) {
+            setResult(pollData);
+            if (pollData.status !== "pending" && pollData.status !== "running") {
+              clearInterval(pollInterval);
+              setSubmitting(false);
+              fetchSubmissions();
+            }
+          }
+        } catch (err) {
+          console.error("Polling error:", err);
+        }
+      }, 2000);
+
+    } catch (err) {
+      setError("Unable to submit code. Check whether the backend is running.");
+      setSubmitting(false);
+    }
+  };
 
   if (!question) {
     return (
@@ -128,7 +218,40 @@ const CodingPlatform = () => {
 
         {/* Monaco + Judge0 */}
         <section className="editor-card">
-          <CodeRunner question={question} />
+          <CodeRunner question={question} onSubmit={handleCodeSubmit} />
+        </section>
+
+        {/* Submissions History */}
+        <section className="history-card">
+          <h2>Submission History</h2>
+          
+          {submitting && (
+            <div className="submission-status">
+              <p>Submitting code... Status: {result?.status || 'Processing'}</p>
+            </div>
+          )}
+
+          {result && !submitting && (
+            <div className={`submission-result ${result.status === 'Accepted' ? 'success' : 'error'}`}>
+              <h3>Last Run Result: {result.status}</h3>
+              <p>{result.result}</p>
+            </div>
+          )}
+
+          <div className="submissions-list">
+            {submissions.map((sub, index) => (
+              <div key={sub._id || index} className="submission-item">
+                <span className="sub-lang">{sub.language}</span>
+                <span className={`sub-status ${sub.status === 'Accepted' ? 'success' : 'error'}`}>
+                  {sub.status}
+                </span>
+                <span className="sub-time">{new Date(sub.createdAt).toLocaleString()}</span>
+              </div>
+            ))}
+            {submissions.length === 0 && !submitting && !result && (
+              <p>No submissions yet.</p>
+            )}
+          </div>
         </section>
       </div>
     </div>
