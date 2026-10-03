@@ -55,7 +55,6 @@ const submissionWorker = new Worker("submission-execution", async job => {
           finalStatus = "wrong_answer";
           finalResult = "Wrong Answer";
           testCaseStatus = "wrong_answer";
-          break; // Stop evaluating on first failure
         }
       } else {
         // Error from Judge0
@@ -64,17 +63,6 @@ const submissionWorker = new Worker("submission-execution", async job => {
         else if (statusId === 6) { finalStatus = "compilation_error"; finalResult = "Compilation Error"; errorMessage = result.compileOutput; testCaseStatus = "compilation_error"; }
         else if (statusId >= 7 && statusId <= 12) { finalStatus = "runtime_error"; finalResult = "Runtime Error"; errorMessage = result.stderr; testCaseStatus = "runtime_error"; }
         else { finalStatus = "failed"; finalResult = result.statusDescription; }
-        
-        await SubmissionTestResult.create({
-          submission: submissionId,
-          testCase: testCase._id,
-          status: testCaseStatus,
-          executionTime: timeMs,
-          memoryUsed: memoryKb,
-          output: testCaseOutput
-        });
-        
-        break;
       }
       
       await SubmissionTestResult.create({
@@ -85,6 +73,10 @@ const submissionWorker = new Worker("submission-execution", async job => {
         memoryUsed: memoryKb,
         output: testCaseOutput
       });
+
+      if (finalStatus !== "accepted") {
+        break; // Stop evaluating further test cases on first failure
+      }
     }
     
     if (finalStatus === "accepted" && passedTestCases !== testCases.length) {

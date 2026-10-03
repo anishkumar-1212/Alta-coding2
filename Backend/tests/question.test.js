@@ -7,21 +7,34 @@ const User = require("../models/User");
 const Question = require("../models/Question");
 const QuestionVersion = require("../models/QuestionVersion");
 
+let mongoServer;
+
 describe("Question Publishing Snapshot", () => {
   let facultyToken;
   let testQuestion;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.MONGO_URI);
+    try {
+      const { MongoMemoryServer } = require("mongodb-memory-server");
+      mongoServer = await MongoMemoryServer.create();
+      await mongoose.connect(mongoServer.getUri());
+    } catch (err) {
+      await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/alta_dashboard");
+    }
     
-    const facultyUser = await User.findOne({ role: "faculty" });
+    let facultyUser = await User.findOne({ role: "faculty" });
     if (!facultyUser) {
-      throw new Error("Seed data missing: no faculty user found");
+      facultyUser = await User.create({
+        name: "Faculty Test",
+        email: "faculty_test@test.com",
+        password: "password",
+        role: "faculty",
+      });
     }
 
     facultyToken = jwt.sign(
       { userId: facultyUser._id.toString(), role: facultyUser.role },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET || "supersecretjwtkey"
     );
 
     // Create a draft question to publish later
@@ -40,7 +53,12 @@ describe("Question Publishing Snapshot", () => {
       await Question.findByIdAndDelete(testQuestion._id);
       await QuestionVersion.deleteMany({ question: testQuestion._id });
     }
-    await mongoose.connection.close();
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
   });
 
   test("Publishing a question should create a QuestionVersion snapshot", async () => {
