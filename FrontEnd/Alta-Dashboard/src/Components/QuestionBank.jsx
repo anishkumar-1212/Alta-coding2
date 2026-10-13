@@ -1,5 +1,21 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import "./QuestionBank.css";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
+const TOPIC_OPTIONS = [
+  "All Topics",
+  "Arrays",
+  "Strings",
+  "Hash Table",
+  "Dynamic Programming",
+  "Math",
+  "Two Pointers",
+  "Binary Search",
+  "Tree",
+  "Graph",
+];
 
 const QuestionBank = () => {
   const navigate = useNavigate();
@@ -8,130 +24,188 @@ const QuestionBank = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  // Filter states
+  const [search, setSearch] = useState("");
+  const [difficulty, setDifficulty] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [selectedTopic, setSelectedTopic] = useState("All Topics");
 
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/questions/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          },
-        );
+  const fetchQuestions = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
-        const data = await response.json();
+      const params = new URLSearchParams();
+      if (difficulty !== "all") params.append("difficulty", difficulty);
+      if (status !== "all") params.append("status", status);
+      if (selectedTopic !== "All Topics") params.append("topic", selectedTopic);
+      if (search.trim()) params.append("search", search.trim());
 
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch questions");
-        }
+      const url = `${API_URL}/api/questions${params.toString() ? `?${params.toString()}` : ""}`;
 
-        const questionList = Array.isArray(data.questions)
-          ? data.questions
-          : Array.isArray(data.data)
-            ? data.data
-            : Array.isArray(data.results)
-              ? data.results
-              : Array.isArray(data)
-                ? data
-                : [];
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        setQuestions(questionList);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch questions");
       }
-    };
 
-    fetchQuestions();
-  }, []);
+      const list = Array.isArray(data.questions)
+        ? data.questions
+        : Array.isArray(data.data)
+          ? data.data
+          : [];
 
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <h1>Question Bank</h1>
-        <p>Loading questions...</p>
-      </div>
-    );
-  }
+      setQuestions(list);
+    } catch (err) {
+      setError(err.message || "Something went wrong fetching questions");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (error) {
-    return (
-      <div style={styles.container}>
-        <h1>Question Bank</h1>
-        <p style={styles.error}>{error}</p>
-        <button onClick={() => window.location.reload()}>Try Again</button>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchQuestions();
+    }, 250);
+
+    return () => clearTimeout(handler);
+  }, [search, difficulty, status, selectedTopic]);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <div className="question-bank-page">
+      <div className="question-bank-header">
         <div>
-          <h1 style={styles.title}>Question Bank</h1>
-          <p style={styles.subtitle}>
-            Practice coding questions and improve your problem-solving skills.
-          </p>
+          <h1>Practice Question Bank</h1>
+          <p>Sharpen your problem solving and coding interview skills.</p>
         </div>
 
-        <button style={styles.backButton} onClick={() => navigate("/student")}>
-          Back to Dashboard
-        </button>
+        <div className="header-actions">
+          <span className="question-count">
+            {questions.length} Question{questions.length === 1 ? "" : "s"}
+          </span>
+          <button
+            className="solve-button"
+            style={{ background: "#475569" }}
+            onClick={() => navigate("/student")}
+          >
+            Dashboard
+          </button>
+        </div>
       </div>
 
-      {questions.length === 0 ? (
-        <div style={styles.emptyBox}>
-          <h2>No questions available</h2>
-          <p>Questions will appear here once they are published.</p>
+      {/* Filter and Search Bar */}
+      <div className="filter-bar">
+        <div className="search-input-wrapper">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search problems by title or keyword..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <select
+          className="filter-select"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+        >
+          <option value="all">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+
+        <select
+          className="filter-select"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="all">All Status</option>
+          <option value="solved">Solved</option>
+          <option value="unsolved">Unsolved</option>
+        </select>
+
+        <div className="filter-pills">
+          {TOPIC_OPTIONS.map((topic) => (
+            <button
+              key={topic}
+              type="button"
+              className={`filter-pill ${selectedTopic === topic ? "active" : ""}`}
+              onClick={() => setSelectedTopic(topic)}
+            >
+              {topic}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && <div className="question-error">{error}</div>}
+
+      {loading ? (
+        <div className="empty-questions">
+          <h2>Loading questions...</h2>
+          <p>Applying filters and retrieving question list.</p>
+        </div>
+      ) : questions.length === 0 ? (
+        <div className="empty-questions">
+          <h2>No questions found</h2>
+          <p>Try clearing your search query or selecting different filters.</p>
         </div>
       ) : (
-        <div style={styles.grid}>
-          {questions.map((question) => (
-            <div key={question._id || question.id} style={styles.card}>
-              <div style={styles.cardTop}>
-                <span style={styles.questionNumber}>Question</span>
+        <div className="question-list">
+          {questions.map((q) => (
+            <div key={q._id || q.id} className="question-card">
+              <div className="question-card-content">
+                <div className="question-card-top">
+                  <h2>{q.title}</h2>
+                  {q.isSolved && (
+                    <span className="status-badge status-solved">
+                      ✓ Solved
+                    </span>
+                  )}
+                </div>
 
-                <span
-                  style={{
-                    ...styles.difficulty,
-                    ...(question.difficulty === "easy"
-                      ? styles.easy
-                      : question.difficulty === "hard"
-                        ? styles.hard
-                        : styles.medium),
-                  }}
-                >
-                  {question.difficulty || "Medium"}
-                </span>
+                <p className="question-description">
+                  {q.description || "No description provided."}
+                </p>
+
+                <div className="question-meta">
+                  <span
+                    className={`difficulty difficulty-${(q.difficulty || "medium").toLowerCase()}`}
+                  >
+                    {q.difficulty || "Medium"}
+                  </span>
+
+                  {typeof q.acceptanceRate === "number" && (
+                    <span className="acceptance-badge">
+                      🎯 {q.acceptanceRate}% Acceptance
+                    </span>
+                  )}
+
+                  {Array.isArray(q.topics) && q.topics.length > 0 && (
+                    <div className="topics-wrap">
+                      {q.topics.map((t, i) => (
+                        <span key={i} className="topic-tag">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <h2 style={styles.cardTitle}>
-                {question.title || "Untitled Question"}
-              </h2>
-
-              <p style={styles.description}>
-                {question.description || "No description available."}
-              </p>
-
-              {Array.isArray(question.topics) && question.topics.length > 0 && (
-                <div style={styles.topics}>
-                  {question.topics.map((topic, index) => (
-                    <span key={index} style={styles.topic}>
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              )}
-
               <button
-                style={styles.solveButton}
+                className="solve-button"
                 onClick={() =>
-                  navigate(`/student/coding/${question._id || question.id}`)
+                  navigate(`/student/coding/${q._id || q.id}`)
                 }
               >
                 Solve Question
@@ -142,150 +216,6 @@ const QuestionBank = () => {
       )}
     </div>
   );
-};
-
-//style of cards and quesion stored in the same file using function
-
-const styles = {
-  container: {
-    padding: "35px",
-    minHeight: "100%",
-    background: "#f7f8fc",
-  },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "20px",
-    marginBottom: "30px",
-  },
-
-  title: {
-    margin: 0,
-    fontSize: "36px",
-    color: "#111827",
-  },
-
-  subtitle: {
-    marginTop: "8px",
-    color: "#6b7280",
-    fontSize: "16px",
-  },
-
-  backButton: {
-    padding: "10px 18px",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    background: "white",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "22px",
-  },
-
-  card: {
-    background: "white",
-    border: "1px solid #e5e7eb",
-    borderRadius: "12px",
-    padding: "24px",
-    boxShadow: "0 3px 10px rgba(0, 0, 0, 0.04)",
-  },
-
-  cardTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "18px",
-  },
-
-  questionNumber: {
-    color: "#6b7280",
-    fontSize: "13px",
-    textTransform: "uppercase",
-    fontWeight: "600",
-  },
-
-  difficulty: {
-    padding: "5px 10px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-
-  easy: {
-    background: "#dcfce7",
-    color: "#166534",
-  },
-
-  medium: {
-    background: "#fef3c7",
-    color: "#92400e",
-  },
-
-  hard: {
-    background: "#fee2e2",
-    color: "#991b1b",
-  },
-
-  cardTitle: {
-    margin: "0 0 12px",
-    fontSize: "21px",
-    color: "#111827",
-  },
-
-  description: {
-    color: "#6b7280",
-    lineHeight: "1.6",
-    minHeight: "70px",
-    fontSize: "14px",
-  },
-
-  topics: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "7px",
-    margin: "18px 0",
-  },
-
-  topic: {
-    background: "#eef2ff",
-    color: "#4338ca",
-    padding: "5px 9px",
-    borderRadius: "5px",
-    fontSize: "12px",
-  },
-
-  solveButton: {
-    width: "100%",
-    marginTop: "12px",
-    padding: "11px",
-    border: "none",
-    borderRadius: "7px",
-    background: "#111827",
-    color: "white",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "600",
-  },
-
-  emptyBox: {
-    background: "white",
-    border: "1px solid #e5e7eb",
-    borderRadius: "12px",
-    padding: "40px",
-    textAlign: "center",
-  },
-
-  error: {
-    color: "#dc2626",
-    marginBottom: "20px",
-  },
 };
 
 export default QuestionBank;

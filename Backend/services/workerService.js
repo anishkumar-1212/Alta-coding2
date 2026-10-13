@@ -4,6 +4,7 @@ const { executeCode } = require("./executionService");
 const Submission = require("../models/Submission");
 const TestCase = require("../models/TestCase");
 const SubmissionTestResult = require("../models/SubmissionTestResult");
+const { recordAcceptedSubmission } = require("./progressService");
 
 const submissionWorker = new Worker("submission-execution", async job => {
   const { submissionId, questionId, code, language } = job.data;
@@ -92,6 +93,14 @@ const submissionWorker = new Worker("submission-execution", async job => {
     submission.memoryUsed = maxMemoryUsed;
     submission.errorMessage = errorMessage;
     await submission.save();
+
+    if (finalStatus === "accepted") {
+      await recordAcceptedSubmission({
+        userId: submission.user,
+        questionId: submission.question,
+        contestId: submission.contest || null,
+      });
+    }
 
   } catch (error) {
     console.error("Worker processing error:", error);

@@ -1,24 +1,100 @@
 const mongoose = require("mongoose");
 const Question = require("../models/Question");
 const QuestionVersion = require("../models/QuestionVersion");
+const PracticeProgress = require("../models/PracticeProgress");
+const Submission = require("../models/Submission");
+const AuditLog = require("../models/AuditLog");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Get all questions
+// Get all questions with filters, search, and solved status
 const getQuestions = async (req, res) => {
   try {
     const isStudent = req.user.role === "student";
+    const { difficulty, topic, search, status } = req.query;
 
     const filter = isStudent ? { status: "published" } : {};
+
+    if (difficulty && ["easy", "medium", "hard"].includes(difficulty.toLowerCase())) {
+      filter.difficulty = difficulty.toLowerCase();
+    }
+
+    if (topic && topic.trim()) {
+      filter.topics = { $regex: new RegExp(topic.trim(), "i") };
+    }
+
+    if (search && search.trim()) {
+      filter.$or = [
+        { title: { $regex: new RegExp(search.trim(), "i") } },
+        { description: { $regex: new RegExp(search.trim(), "i") } },
+      ];
+    }
 
     const questions = await Question.find(filter)
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 });
 
+    // Fetch user's practice progress to mark solved questions
+    let solvedSet = new Set();
+    if (req.user && req.user.userId) {
+      const progress = await PracticeProgress.findOne({ user: req.user.userId });
+      if (progress && Array.isArray(progress.solvedQuestions)) {
+        progress.solvedQuestions.forEach((id) => solvedSet.add(id.toString()));
+      }
+    }
+
+    // Calculate acceptance rates for the matched questions
+    const questionIds = questions.map((q) => q._id);
+    const submissionStats = await Submission.aggregate([
+      { $match: { question: { $in: questionIds } } },
+      {
+        $group: {
+          _id: "$question",
+          total: { $sum: 1 },
+          accepted: {
+            $sum: { $cond: [{ $eq: ["$status", "accepted"] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    const statsMap = {};
+    submissionStats.forEach((s) => {
+      statsMap[s._id.toString()] = {
+        total: s.total,
+        accepted: s.accepted,
+        acceptanceRate:
+          s.total > 0 ? Math.round((s.accepted / s.total) * 100) : 0,
+      };
+    });
+
+    let resultQuestions = questions.map((q) => {
+      const qObj = q.toObject();
+      const stats = statsMap[q._id.toString()] || {
+        total: 0,
+        accepted: 0,
+        acceptanceRate: 0,
+      };
+      const isSolved = solvedSet.has(q._id.toString());
+      return {
+        ...qObj,
+        isSolved,
+        totalSubmissions: stats.total,
+        acceptedSubmissions: stats.accepted,
+        acceptanceRate: stats.acceptanceRate,
+      };
+    });
+
+    if (status === "solved") {
+      resultQuestions = resultQuestions.filter((q) => q.isSolved);
+    } else if (status === "unsolved") {
+      resultQuestions = resultQuestions.filter((q) => !q.isSolved);
+    }
+
     res.status(200).json({
       success: true,
-      count: questions.length,
-      questions,
+      count: resultQuestions.length,
+      questions: resultQuestions,
     });
   } catch (error) {
     console.error("Get questions error:", error.message);
@@ -314,6 +390,15 @@ const publishQuestion = async (req, res) => {
 
     await question.save();
 
+    await AuditLog.create({
+      action: "QUESTION_PUBLISH",
+      performedBy: req.user.userId,
+      organization: question.organization || null,
+      targetType: "Question",
+      targetId: question._id,
+      details: { version: nextVersion, title: question.title },
+    }).catch((err) => console.error("Audit log error:", err.message));
+
     res.status(200).json({
       success: true,
       message: "Question published successfully",
@@ -373,6 +458,15 @@ const unpublishQuestion = async (req, res) => {
     question.status = "draft";
 
     await question.save();
+
+    await AuditLog.create({
+      action: "QUESTION_UNPUBLISH",
+      performedBy: req.user.userId,
+      organization: question.organization || null,
+      targetType: "Question",
+      targetId: question._id,
+      details: { title: question.title },
+    }).catch((err) => console.error("Audit log error:", err.message));
 
     res.status(200).json({
       success: true,

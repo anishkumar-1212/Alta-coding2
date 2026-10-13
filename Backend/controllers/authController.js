@@ -46,15 +46,15 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    // Find ALTA organization
-    const organization = await Organization.findOne({
+    // Find or create ALTA organization
+    let organization = await Organization.findOne({
       slug: "alta",
     });
 
     if (!organization) {
-      return res.status(500).json({
-        success: false,
-        message: "ALTA organization not found",
+      organization = await Organization.create({
+        name: "Alta",
+        slug: "alta",
       });
     }
 

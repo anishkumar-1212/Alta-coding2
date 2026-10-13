@@ -11,6 +11,8 @@ const questionRoutes = require("./routes/questionRoutes");
 const executionRoutes = require("./routes/executionRoutes");
 const testCaseRoutes = require("./routes/testCaseRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
+const practiceRoutes = require("./routes/practiceRoutes");
+const contestRoutes = require("./routes/contestRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 
@@ -32,6 +34,8 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/execution", executionRoutes);
 app.use("/api/test-cases", testCaseRoutes);
 app.use("/api/submissions", submissionRoutes);
+app.use("/api/practice", practiceRoutes);
+app.use("/api/contests", contestRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/admin", adminRoutes);
 
@@ -51,11 +55,12 @@ app.get("/api/health", (req, res) => {
 const PORT = process.env.PORT || 5001;
 
 if (require.main === module) {
-  connectDB();
-  require("./services/workerService");
+  connectDB().then(() => {
+    require("./services/workerService");
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   });
 }
 

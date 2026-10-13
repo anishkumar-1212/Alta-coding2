@@ -42,13 +42,33 @@ function CodeRunner({ question, onSubmit }) {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const draftKey = `draft_${question?._id || question?.id || "scratch"}_${language}`;
+
+  // Load autosaved draft on mount or language switch
+  useEffect(() => {
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      setCode(saved);
+    } else {
+      setCode(defaultCode[language] || "");
+    }
+  }, [draftKey]);
+
+  // Debounced autosave
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (code) {
+        localStorage.setItem(draftKey, code);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [code, draftKey]);
+
   const currentLanguage = languages.find((item) => item.value === language);
 
   const handleLanguageChange = (event) => {
     const selectedLanguage = event.target.value;
-
     setLanguage(selectedLanguage);
-    setCode(defaultCode[selectedLanguage]);
     setOutput("");
     setError("");
     setStatus("");
@@ -116,17 +136,22 @@ function CodeRunner({ question, onSubmit }) {
   return (
     <div className="code-runner">
       <div className="code-runner-header">
-        <select
-          value={language}
-          onChange={handleLanguageChange}
-          disabled={loading}
-        >
-          {languages.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <select
+            value={language}
+            onChange={handleLanguageChange}
+            disabled={loading}
+          >
+            {languages.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <span style={{ fontSize: "12px", color: "#64748b" }}>
+            💾 Auto-saved
+          </span>
+        </div>
 
         <div>
           <button onClick={handleRun} disabled={loading} style={{ marginRight: '10px' }}>

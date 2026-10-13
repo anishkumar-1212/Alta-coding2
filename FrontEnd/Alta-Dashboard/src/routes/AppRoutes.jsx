@@ -14,6 +14,9 @@ import FacultyDashboard from "../Components/FacultyDashboard";
 import FacultyQuestions from "../Components/FacultyQuestions";
 import EditQuestion from "../Components/EditQuestion";
 import AdminDashboard from "../Components/AdminDashboard";
+import ContestLobby from "../Components/ContestLobby";
+import ContestWorkspace from "../Components/ContestWorkspace";
+import FacultyContests from "../Components/FacultyContests";
 
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
@@ -77,6 +80,26 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Student contest lobby */}
+        <Route
+          path="/student/contests"
+          element={
+            <RoleRoute allowedRole="student">
+              <ContestLobby />
+            </RoleRoute>
+          }
+        />
+
+        {/* Student contest workspace */}
+        <Route
+          path="/student/contest/:contestId"
+          element={
+            <RoleRoute allowedRole="student">
+              <ContestWorkspace />
+            </RoleRoute>
+          }
+        />
+
         {/* Faculty dashboard */}
         <Route
           path="/faculty"
@@ -113,6 +136,16 @@ const AppRoutes = () => {
           element={
             <RoleRoute allowedRole="faculty">
               <ManageTestCases />
+            </RoleRoute>
+          }
+        />
+
+        {/* Faculty contests management */}
+        <Route
+          path="/faculty/contests"
+          element={
+            <RoleRoute allowedRole="faculty">
+              <FacultyContests />
             </RoleRoute>
           }
         />

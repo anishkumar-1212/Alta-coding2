@@ -10,13 +10,17 @@ const allowedLanguages = ["javascript", "python", "java", "cpp"];
 const createSubmission = async (req, res) => {
   try {
     const { questionId } = req.params;
-    const { code, language } = req.body;
+    const { code, language, contestId } = req.body;
     
     // Idempotency key to prevent duplicate-click double processing
     const idempotencyKey = req.headers["x-idempotency-key"];
 
     if (!mongoose.Types.ObjectId.isValid(questionId)) {
       return res.status(400).json({ message: "Invalid question ID" });
+    }
+
+    if (contestId && !mongoose.Types.ObjectId.isValid(contestId)) {
+      return res.status(400).json({ message: "Invalid contest ID" });
     }
 
     if (typeof code !== "string" || code.trim() === "") {
@@ -45,6 +49,7 @@ const createSubmission = async (req, res) => {
     const submission = await Submission.create({
       question: questionId,
       user: req.user.userId,
+      contest: contestId || null,
       code,
       language,
       status: "pending",

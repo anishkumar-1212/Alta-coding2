@@ -14,6 +14,12 @@ const submissionSchema = new mongoose.Schema(
       required: true,
     },
 
+    contest: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Contest",
+      default: null,
+    },
+
     code: {
       type: String,
       required: true,
@@ -77,5 +83,6 @@ const submissionSchema = new mongoose.Schema(
 
 submissionSchema.index({ user: 1, question: 1 });
 submissionSchema.index({ question: 1, createdAt: -1 });
+submissionSchema.index({ contest: 1, user: 1 });
 
 module.exports = mongoose.model("Submission", submissionSchema);

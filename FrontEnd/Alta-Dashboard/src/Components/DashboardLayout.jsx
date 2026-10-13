@@ -42,6 +42,10 @@ const DashboardLayout = () => {
               <Link to="/student/questions" className="sidebar-link">
                 Question Bank
               </Link>
+
+              <Link to="/student/contests" className="sidebar-link">
+                Contests
+              </Link>
             </>
           )}
 
@@ -53,6 +57,10 @@ const DashboardLayout = () => {
 
               <Link to="/faculty/questions" className="sidebar-link">
                 Manage Questions
+              </Link>
+
+              <Link to="/faculty/contests" className="sidebar-link">
+                Contests
               </Link>
             </>
           )}
