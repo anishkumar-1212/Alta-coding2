@@ -1,113 +1,210 @@
 .code-runner {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
-  background: #ffffff;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  background: #262626;
+  color: #eeeeee;
+  box-sizing: border-box;
 }
 
 .code-runner-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #3a3a3a;
+  background: #303030;
 }
 
 .code-runner-header select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  max-width: 45%;
+  padding: 8px 10px;
+  border: 1px solid #484848;
   border-radius: 6px;
-  background: #ffffff;
-  color: #111827;
-  font-size: 14px;
-  cursor: pointer;
+  background: #262626;
+  color: #eeeeee;
+  font-size: 13px;
 }
 
-.code-runner-header button {
-  width: 90px;
-  height: 38px;
-  border: none;
+.runner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runner-actions button {
+  padding: 9px 14px;
+  border: 0;
   border-radius: 6px;
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.code-runner-header button:hover {
-  background: #1d4ed8;
+.run-code-button {
+  background: #414141;
+  color: #ffffff;
 }
 
-.code-runner-header button:disabled {
-  background: #93c5fd;
+.run-code-button:hover {
+  background: #505050;
+}
+
+.runner-actions .submit-code-button {
+  background: #22a447;
+  color: #ffffff;
+}
+
+.runner-actions .submit-code-button:hover {
+  background: #18853a;
+}
+
+.runner-actions button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .editor-container {
-  width: 100%;
+  flex: 1;
+  min-height: 160px;
+  min-width: 0;
   overflow: hidden;
+  background: #1e1e1e;
 }
 
-.input-section,
-.output-section {
-  padding: 16px;
-  background: #ffffff;
-  border-top: 1px solid #e5e7eb;
-}
-
-.input-section h3,
-.output-section h3 {
-  margin: 0 0 10px;
-  color: #111827;
-  font-size: 15px;
-}
-
-.input-section textarea {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
+/* Test panel */
+.test-panel {
+  display: flex;
+  flex: 0 0 230px;
+  flex-direction: column;
   min-height: 100px;
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 7px;
-  background: #f9fafb;
-  color: #111827;
-  font-family: monospace;
-  font-size: 14px;
+  overflow: hidden;
+  border-top: 1px solid #3a3a3a;
+  background: #252525;
+}
+
+.test-panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 18px;
+  padding: 0 14px;
+  border-bottom: 1px solid #3a3a3a;
+  background: #303030;
+}
+
+.test-panel-tabs button {
+  padding: 12px 3px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #b8b8b8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.test-panel-tabs button.active {
+  border-bottom-color: #22c55e;
+  color: #ffffff;
+}
+
+.testcase-panel,
+.test-result-panel {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 14px;
+  overflow-y: auto;
+}
+
+.testcase-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.testcase-tab,
+.add-testcase-button {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #b8b8b8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.testcase-tab.active,
+.testcase-tab:hover,
+.add-testcase-button:hover {
+  background: #414141;
+  color: #ffffff;
+}
+
+.add-testcase-button {
+  font-size: 20px;
+}
+
+.testcase-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.testcase-fields label {
+  display: grid;
+  gap: 7px;
+  color: #b8b8b8;
+  font-size: 12px;
+}
+
+.testcase-fields textarea {
+  width: 100%;
+  min-height: 55px;
+  max-height: 160px;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid #444444;
+  border-radius: 6px;
   outline: none;
+  background: #303030;
+  color: #ffffff;
+  font-family: monospace;
+  font-size: 13px;
   resize: vertical;
 }
 
-.input-section textarea:focus {
-  border-color: #2563eb;
+.testcase-fields textarea:focus {
+  border-color: #737373;
 }
 
-.output-box {
-  min-height: 100px;
-  padding: 14px;
-  box-sizing: border-box;
-  border: 1px solid #d1d5db;
-  border-radius: 7px;
-  background: #f9fafb;
-  color: #111827;
-  overflow-x: auto;
-}
-
-.output-box pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: monospace;
-  font-size: 14px;
+.testcase-note {
+  margin: 12px 0 0;
+  color: #999999;
+  font-size: 11px;
   line-height: 1.5;
+}
+
+.remove-testcase-button {
+  justify-self: start;
+  padding: 7px 10px;
+  border: 1px solid #713737;
+  border-radius: 5px;
+  background: #321f1f;
+  color: #ff9999;
+  cursor: pointer;
 }
 
 .execution-status {
   display: inline-block;
-  margin: 0 0 10px;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -115,36 +212,62 @@
 }
 
 .status-success {
-  color: #166534;
-  background: #dcfce7;
+  background: #173a27;
+  color: #4ade80;
 }
 
 .status-running {
-  color: #92400e;
-  background: #fef3c7;
+  background: #3b3020;
+  color: #fbbf24;
 }
 
 .status-error {
-  color: #991b1b;
-  background: #fee2e2;
+  background: #321f1f;
+  color: #ff8080;
 }
 
-@media (max-width: 600px) {
+.test-result-panel h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.test-result-panel pre {
+  padding: 10px;
+  border-radius: 6px;
+  background: #171717;
+  color: #eeeeee;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.test-case-result {
+  padding: 12px 0;
+  border-bottom: 1px solid #343434;
+}
+
+.test-case-result h4 {
+  margin-bottom: 10px;
+}
+
+.error-output {
+  color: #ff9292 !important;
+}
+
+@media (max-width: 650px) {
   .code-runner-header {
-    gap: 10px;
+    flex-wrap: wrap;
   }
 
-  .code-runner-header select {
-    min-width: 0;
-    flex: 1;
+  .runner-actions {
+    gap: 5px;
   }
 
-  .code-runner-header button {
-    flex-shrink: 0;
+  .runner-actions button {
+    padding: 8px 10px;
   }
 
-  .input-section,
-  .output-section {
-    padding: 12px;
+  .test-panel {
+    flex-basis: 210px;
   }
 }

@@ -1,173 +1,267 @@
+/* Main coding page */
 .coding-page {
-  min-height: 100vh;
-  padding: 32px;
-  background: #f5f7fb;
-  color: #1f2937;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #1a1a1a;
+  color: #eff1f6;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Hide the introductory header to maximize coding space */
 .coding-header {
-  margin-bottom: 24px;
+  display: none;
 }
 
 .page-label {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #6366f1;
+  color: #22c55e;
 }
 
 .coding-header h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: 24px;
 }
 
 .page-description {
-  color: #6b7280;
+  color: #a3a3a3;
 }
 
+/* Error banner */
 .coding-error {
-  margin-bottom: 20px;
-  padding: 14px;
-  border-radius: 8px;
-  background: #fee2e2;
-  color: #b91c1c;
+  margin: 8px;
+  padding: 12px;
+  border: 1px solid #713737;
+  border-radius: 6px;
+  background: #321f1f;
+  color: #ff8080;
 }
 
+/* Two-panel layout */
 .coding-layout {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 24px;
-  align-items: start;
+  grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  align-items: stretch;
 }
 
+/* Problem, editor and history panels */
 .problem-card,
 .editor-card,
 .history-card {
-  padding: 24px;
-  border-radius: 14px;
-  background: white;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  box-sizing: border-box;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  background: #262626;
+  color: #eff1f6;
+  box-shadow: none;
 }
 
-.problem-card h2,
-.editor-card h2,
-.history-card h2 {
-  margin-top: 0;
+/* Left problem panel */
+.problem-card {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #555 #262626;
+}
+
+.problem-card h2 {
+  margin: 0 0 18px;
+  font-size: 23px;
+  font-weight: 600;
 }
 
 .problem-card h3 {
   margin-top: 24px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #f3f4f6;
 }
 
 .problem-card p {
-  line-height: 1.6;
-  color: #4b5563;
+  color: #d1d5db;
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .problem-card pre,
 .error-output {
   overflow-x: auto;
-  padding: 16px;
-  border-radius: 8px;
-  background: #111827;
-  color: #f9fafb;
-  line-height: 1.5;
+  padding: 12px;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  background: #1c1c1c;
+  color: #d4d4d4;
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
+/* Right editor panel */
+.editor-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  gap: 10px;
+}
+
+/* Toolbar */
 .editor-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin: -16px -16px 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #3a3a3a;
+  background: #303030;
 }
 
 .editor-toolbar select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 7px 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background: #262626;
+  color: #eff1f6;
+  font-size: 13px;
+  outline: none;
 }
 
+/* Text editor, if used */
 .code-editor {
   width: 100%;
-  min-height: 420px;
+  min-height: 300px;
+  flex: 1;
   box-sizing: border-box;
-  padding: 18px;
-  resize: vertical;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #111827;
-  color: #f9fafb;
-  font-family: "Courier New", monospace;
+  padding: 16px;
+  resize: none;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  outline: none;
+  background: #1e1e1e;
+  color: #eff1f6;
+  font-family: monospace;
   font-size: 14px;
   line-height: 1.6;
 }
 
+/* Buttons */
+
 .submit-code-button {
+  display: block;
   width: 100%;
-  margin-top: 16px;
-  padding: 13px;
+  box-sizing: border-box;
+  margin: 12px 0 0;
+  padding: 12px 16px;
+
+  background-color: #22c55e !important;
+  color: #ffffff !important;
+
   border: none;
-  border-radius: 8px;
-  background: #4f46e5;
-  color: white;
-  font-size: 15px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
+  text-align: center;
+
   cursor: pointer;
+  opacity: 1;
 }
 
 .submit-code-button:hover {
-  background: #4338ca;
+  background-color: #16a34a !important;
 }
 
 .submit-code-button:disabled {
-  opacity: 0.6;
+  background-color: #166534 !important;
+  color: #d1fae5 !important;
+  opacity: 1;
   cursor: not-allowed;
 }
 
+/* Run button, when using this class */
+.run-code-button {
+  padding: 10px 20px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #3a3a3a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.run-code-button:hover {
+  background: #4a4a4a;
+}
+
+/* Results */
 .result-card {
-  margin-top: 20px;
-  padding: 18px;
-  border-radius: 10px;
-  background: #f3f4f6;
+  flex-shrink: 0;
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  background: #202020;
+  color: #eff1f6;
 }
 
 .result-card h2 {
-  margin-bottom: 16px;
+  margin: 0 0 14px;
+  font-size: 17px;
 }
 
 .result-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .result-grid div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  min-width: 0;
 }
 
 .result-grid span {
+  color: #a3a3a3;
   font-size: 12px;
-  color: #6b7280;
 }
 
 .result-grid strong {
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 .error-output {
-  margin-top: 16px;
+  max-height: 140px;
   white-space: pre-wrap;
 }
 
+/* Submission history */
 .history-card {
-  margin-top: 24px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.history-card h2 {
+  margin: 0 0 12px;
+  font-size: 17px;
 }
 
 .history-table-wrapper {
+  width: 100%;
   overflow-x: auto;
 }
 
@@ -178,27 +272,80 @@
 
 .history-table th,
 .history-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 10px;
+  border-bottom: 1px solid #3a3a3a;
   text-align: left;
   white-space: nowrap;
 }
 
 .history-table th {
-  background: #f9fafb;
-  font-size: 13px;
+  background: #303030;
+  color: #a3a3a3;
+  font-size: 12px;
 }
 
 .history-table td {
+  color: #d1d5db;
   font-size: 13px;
 }
 
+/* Smaller screens */
 @media (max-width: 900px) {
-  .coding-layout {
-    grid-template-columns: 1fr;
+  .coding-page {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
-  .coding-page {
-    padding: 16px;
+  .coding-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
   }
+
+  .problem-card {
+    height: auto;
+    max-height: 45vh;
+  }
+
+  .editor-card {
+    height: auto;
+    overflow: visible;
+  }
+
+  .code-editor {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .coding-layout {
+    padding: 5px;
+    gap: 6px;
+  }
+
+  .problem-card,
+  .editor-card,
+  .history-card {
+    padding: 12px;
+  }
+
+  .editor-toolbar {
+    margin: -12px -12px 0;
+    padding: 10px 12px;
+  }
+
+  .problem-card h2 {
+    font-size: 20px;
+  }
+}
+.test-panel-resize-handle {
+  flex: 0 0 6px;
+  cursor: row-resize;
+  background: #262626;
+  border-top: 1px solid #3a3a3a;
+}
+
+.test-panel-resize-handle:hover {
+  background: #22c55e;
 }

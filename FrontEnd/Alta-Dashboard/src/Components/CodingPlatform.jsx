@@ -157,7 +157,7 @@ const CodingPlatform = () => {
   return (
     <div className="coding-page">
       <div className="coding-header">
-        <p className="page-label">CODING PLATFORM</p>
+        {/* <p className="page-label">CODING PLATFORM</p> */}
 
         <h1>{question.title}</h1>
 
